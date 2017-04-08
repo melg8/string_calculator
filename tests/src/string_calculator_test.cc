@@ -134,4 +134,14 @@ SCENARIO("StringCalculator add numbers in string") {
       THEN("number bigger than 1000 is ignored") { REQUIRE_EQ(result, 2); }
     }
   }
+
+  GIVEN("string with delimiter of any length") {
+    static const auto kDelimiterWithLength3 = "//[***]\n1***2***3";
+
+    WHEN("call add with that string as argument") {
+      const auto result = StringCalculator::Add(kDelimiterWithLength3);
+
+      THEN("this delimiter used as default") { REQUIRE_EQ(result, 6); }
+    }
+  }
 }

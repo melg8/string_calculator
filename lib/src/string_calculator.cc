@@ -41,11 +41,16 @@ static auto NormalizeToDelim(std::string s, const std::string& delim) {
 static auto CutOfDelimiter(std::string* s) {
   assert(s);
   std::string delimiter{','};
-  const std::regex delimiter_reg{"//(.*)\n"};
-  std::smatch delimiter_match;
-  if (std::regex_search(*s, delimiter_match, delimiter_reg)) {
-    delimiter = delimiter_match[1];
-    *s = delimiter_match.suffix();
+  const std::regex delimiters_sequnce{"//(.*)\n"};
+  std::smatch delimiters_match;
+  if (std::regex_search(*s, delimiters_match, delimiters_sequnce)) {
+    delimiter = delimiters_match[1];
+    *s = delimiters_match.suffix();
+    const std::regex concrete_delimiter("\\[(.*)\\]");
+    std::smatch delimiter_match;
+    if (std::regex_search(delimiter, delimiter_match, concrete_delimiter)) {
+      delimiter = delimiter_match[1];
+    };
   }
   return delimiter;
 }
