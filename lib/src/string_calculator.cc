@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cassert>
 #include <exception>
+#include <regex>
 #include <sstream>
 #include <vector>
 
@@ -14,19 +15,32 @@ static auto SplitByDelim(std::string s, const std::string& delim) {
     elems.push_back(elem);
     s.erase(0, pos + delim.length());
   }
-  elems.push_back(s);  // if no delim occured should return whole string
+  if (!s.empty()) {
+    elems.push_back(s);  // if no delim occured should return whole string
+  }
 
   return elems;
 }
 
-static auto NormalizeToDelim(std::string s, const char delim) {
-  std::replace(std::begin(s), std::end(s), '\n', delim);
+static void ReplaceAll(const std::string& search,
+                       const std::string& replace,
+                       std::string* s) {
+  for (size_t pos = 0;; pos += replace.length()) {
+    pos = s->find(search, pos);
+    if (pos == std::string::npos) break;
+    s->erase(pos, search.length());
+    s->insert(pos, replace);
+  }
+}
+
+static auto NormalizeToDelim(std::string s, const std::string& delim) {
+  ReplaceAll({'\n'}, delim, &s);
   return s;
 }
 
 static auto CutOfDelimiter(std::string* s) {
   assert(s);
-  auto delimiter = ',';
+  std::string delimiter{','};
   static const auto kDelimiterStarter = "//";
   const auto delimiter_starter_pos = s->find(kDelimiterStarter);
   if (delimiter_starter_pos == 0) {
@@ -41,7 +55,7 @@ static auto CutOfDelimiter(std::string* s) {
 
 static auto NorlmalizedSplit(std::string s) {
   const auto delim = CutOfDelimiter(&s);
-  return SplitByDelim(NormalizeToDelim(s, delim), {delim});
+  return SplitByDelim(NormalizeToDelim(s, delim), delim);
 }
 
 static auto ToIntNumbers(const std::vector<std::string>& numbers) {
