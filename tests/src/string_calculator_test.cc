@@ -117,7 +117,7 @@ SCENARIO("StringCalculator add numbers in string") {
         StringCalculator::Add(kMultipleNegativeNumbers);
       } catch (const std::exception& e) {
         THEN(
-            "exception should contain message with all negative numbers with "
+            "exception should contain message with all negative numbers with"
             "same order as they appear in original string") {
           REQUIRE(std::string("negatives not allowed: -5 -3 -1 ") == e.what());
         }
@@ -142,6 +142,24 @@ SCENARIO("StringCalculator add numbers in string") {
       const auto result = StringCalculator::Add(kDelimiterWithLength3);
 
       THEN("this delimiter used as default") { REQUIRE_EQ(result, 6); }
+    }
+  }
+
+  GIVEN("string with multiple delimiters") {
+    static const auto kMultipleDelimiters = "//[*][x][z]\n1*2x3";
+    WHEN("call add with that string as argument") {
+      const auto result = StringCalculator::Add(kMultipleDelimiters);
+
+      THEN("all delimiters are used as default") { REQUIRE_EQ(result, 6); }
+    }
+  }
+
+  GIVEN("string with multichar multiple delimiters") {
+    static const auto kMultiCharMultipleDelimiters = "//[***][xx][z]\n1***2xx3";
+    WHEN("call add with that string as argument") {
+      const auto result = StringCalculator::Add(kMultiCharMultipleDelimiters);
+
+      THEN("all delimiters are used as default") { REQUIRE_EQ(result, 6); }
     }
   }
 }

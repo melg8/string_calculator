@@ -33,31 +33,44 @@ static void ReplaceAll(const std::string& search,
   }
 }
 
-static auto NormalizeToDelim(std::string s, const std::string& delim) {
-  ReplaceAll({'\n'}, delim, &s);
+static auto NormalizeToDefaultDelimeter(
+    std::string s,
+    const std::string& default_delim,
+    const std::vector<std::string>& delimeters) {
+  for (const auto& delimeter : delimeters) {
+    ReplaceAll(delimeter, default_delim, &s);
+  }
   return s;
 }
 
-static auto CutOfDelimiter(std::string* s) {
+static auto CutOffDelimiters(std::string* s) {
   assert(s);
-  std::string delimiter{','};
-  const std::regex delimiters_sequnce{"//(.*)\n"};
-  std::smatch delimiters_match;
-  if (std::regex_search(*s, delimiters_match, delimiters_sequnce)) {
-    delimiter = delimiters_match[1];
-    *s = delimiters_match.suffix();
-    const std::regex concrete_delimiter("\\[(.*)\\]");
-    std::smatch delimiter_match;
-    if (std::regex_search(delimiter, delimiter_match, concrete_delimiter)) {
-      delimiter = delimiter_match[1];
-    };
+  std::vector<std::string> delimiter{{','}};
+  if (s->size() > 2 && s->at(0) == '/' && s->at(1) == '/') {
+    auto new_line = std::find(std::begin(*s), std::end(*s), '\n');
+    if (new_line != std::end(*s)) {
+      std::string clean_delimiters(std::begin(*s), new_line + 1);
+      s->erase(0, clean_delimiters.size());
+      clean_delimiters.erase(0, 2);
+      clean_delimiters.erase(clean_delimiters.size() - 1);
+      if (clean_delimiters.at(0) == '[') {
+        clean_delimiters.erase(0, 1);
+      }
+      if (clean_delimiters.at(clean_delimiters.size() - 1) == ']') {
+        clean_delimiters.erase(clean_delimiters.size() - 1);
+      }
+      return SplitByDelim(clean_delimiters, "][");
+    }
   }
+
   return delimiter;
 }
 
 static auto NorlmalizedSplit(std::string s) {
-  const auto delim = CutOfDelimiter(&s);
-  return SplitByDelim(NormalizeToDelim(s, delim), delim);
+  const auto delims = CutOffDelimiters(&s);
+  static const auto default_delim = '\n';
+  return SplitByDelim(NormalizeToDefaultDelimeter(s, {default_delim}, delims),
+                      {default_delim});
 }
 
 static auto ToIntNumbers(const std::vector<std::string>& numbers) {
