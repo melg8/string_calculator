@@ -15,23 +15,24 @@ static auto SplitByDelim(std::string s, const std::string& delim) {
     s.erase(0, pos + delim.length());
   }
   if (!s.empty()) {
-    elems.push_back(s);  // if no delim occured should return whole string
+    elems.push_back(s);  // If no delim occured should return whole string.
   }
 
   return elems;
 }
 
-static void ReplaceAll(const std::string& search,
-                       const std::string& replace,
-                       std::string* s) {
+static auto ReplaceAll(std::string s,
+                       const std::string& search,
+                       const std::string& replace) {
   for (size_t pos = 0;; pos += replace.length()) {
-    pos = s->find(search, pos);
+    pos = s.find(search, pos);
     if (pos == std::string::npos) {
       break;
     }
-    s->erase(pos, search.length());
-    s->insert(pos, replace);
+    s.erase(pos, search.length());
+    s.insert(pos, replace);
   }
+  return s;
 }
 
 static auto NormalizeToDefaultDelimeter(
@@ -39,9 +40,21 @@ static auto NormalizeToDefaultDelimeter(
     const std::string& default_delim,
     const std::vector<std::string>& delimeters) {
   for (const auto& delimeter : delimeters) {
-    ReplaceAll(delimeter, default_delim, &s);
+    s = ReplaceAll(s, delimeter, default_delim);
   }
   return s;
+}
+
+static auto RemoveTagsFromDelimiters(std::string delimiters) {
+  delimiters.erase(0, 2);
+  delimiters.erase(delimiters.size() - 1);
+  if (delimiters.at(0) == '[') {
+    delimiters.erase(0, 1);
+  }
+  if (delimiters.at(delimiters.size() - 1) == ']') {
+    delimiters.erase(delimiters.size() - 1);
+  }
+  return delimiters;
 }
 
 static auto CutOffDelimiters(std::string* s) {
@@ -52,15 +65,7 @@ static auto CutOffDelimiters(std::string* s) {
     if (new_line != std::end(*s)) {
       std::string clean_delimiters(std::begin(*s), new_line + 1);
       s->erase(0, clean_delimiters.size());
-      clean_delimiters.erase(0, 2);
-      clean_delimiters.erase(clean_delimiters.size() - 1);
-      if (clean_delimiters.at(0) == '[') {
-        clean_delimiters.erase(0, 1);
-      }
-      if (clean_delimiters.at(clean_delimiters.size() - 1) == ']') {
-        clean_delimiters.erase(clean_delimiters.size() - 1);
-      }
-      return SplitByDelim(clean_delimiters, "][");
+      return SplitByDelim(RemoveTagsFromDelimiters(clean_delimiters), "][");
     }
   }
 
