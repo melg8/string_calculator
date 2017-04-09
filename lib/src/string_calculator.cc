@@ -2,9 +2,8 @@
 
 #include <algorithm>
 #include <cassert>
-#include <exception>
-#include <regex>
-#include <sstream>
+#include <numeric>
+#include <stdexcept>
 #include <vector>
 
 static auto SplitByDelim(std::string s, const std::string& delim) {
@@ -27,7 +26,9 @@ static void ReplaceAll(const std::string& search,
                        std::string* s) {
   for (size_t pos = 0;; pos += replace.length()) {
     pos = s->find(search, pos);
-    if (pos == std::string::npos) break;
+    if (pos == std::string::npos) {
+      break;
+    }
     s->erase(pos, search.length());
     s->insert(pos, replace);
   }
@@ -68,25 +69,26 @@ static auto CutOffDelimiters(std::string* s) {
 
 static auto NorlmalizedSplit(std::string s) {
   const auto delims = CutOffDelimiters(&s);
-  static const auto default_delim = '\n';
-  return SplitByDelim(NormalizeToDefaultDelimeter(s, {default_delim}, delims),
-                      {default_delim});
+  static const auto kDefaultDelim = '\n';
+  return SplitByDelim(NormalizeToDefaultDelimeter(s, {kDefaultDelim}, delims),
+                      {kDefaultDelim});
 }
 
 static auto ToIntNumbers(const std::vector<std::string>& numbers) {
-  using namespace std;
-  vector<int> int_numbers(numbers.size());
-  static const auto s_to_int = [](const string& s) { return stoi(s); };
-  transform(begin(numbers), end(numbers), begin(int_numbers), s_to_int);
+  std::vector<int> int_numbers(numbers.size());
+  static const auto kStringToInt = [](const std::string& s) {
+    return std::stoi(s);
+  };
+  transform(std::begin(numbers), std::end(numbers), std::begin(int_numbers),
+            kStringToInt);
   return int_numbers;
 }
 
-static auto CollectNegativeNumbers(const std::vector<int> numbers) {
-  using namespace std;
-  vector<int> invalid_numbers;
-  static const auto less_than_zero = [](int value) { return value < 0; };
-  std::copy_if(begin(numbers), end(numbers), back_inserter(invalid_numbers),
-               less_than_zero);
+static auto CollectNegativeNumbers(const std::vector<int>& numbers) {
+  std::vector<int> invalid_numbers;
+  static const auto kLessThanZero = [](int value) { return value < 0; };
+  std::copy_if(std::begin(numbers), std::end(numbers),
+               std::back_inserter(invalid_numbers), kLessThanZero);
   return invalid_numbers;
 }
 
@@ -100,20 +102,21 @@ static auto MessageAboutNegativeNumbers(
 }
 
 static void ReportErrorAboutNegativeNumbers(
-    const std::vector<int> negative_numbers) {
+    const std::vector<int>& negative_numbers) {
   if (!negative_numbers.empty()) {
     throw std::logic_error(MessageAboutNegativeNumbers(negative_numbers));
   }
 }
 
-static void ReportErrorIfFoundNegativeNumbers(const std::vector<int> numbers) {
+static void ReportErrorIfFoundNegativeNumbers(const std::vector<int>& numbers) {
   ReportErrorAboutNegativeNumbers(CollectNegativeNumbers(numbers));
 }
 
 static auto WithoutGraterThanThousandElements(std::vector<int> numbers) {
-  using namespace std;
-  static const auto greater = [](int value) { return value > 1000; };
-  numbers.erase(remove_if(begin(numbers), end(numbers), greater), end(numbers));
+  static const auto kGreater = [](int value) { return value > 1000; };
+  numbers.erase(
+      std::remove_if(std::begin(numbers), std::end(numbers), kGreater),
+      std::end(numbers));
   return numbers;
 }
 

@@ -92,7 +92,7 @@ SCENARIO("StringCalculator add numbers in string") {
     WHEN("call add with that string as argument") {
       THEN("exception should be thrown") {
         REQUIRE_THROWS_AS(StringCalculator::Add(kNegativeNumber),
-                          std::exception);
+                          const std::exception&);
       }
     }
   }
